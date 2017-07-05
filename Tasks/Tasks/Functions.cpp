@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <conio.h>
 
+//#include "Functions.h"
+
 using namespace std;
 
 HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -12,19 +14,24 @@ HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 #define menuColor 10
 #define defaultColor 7
 #define length 255
+
+//FILE *f;
 //--------------------------------------------------------------------
 char **AddTask(char **tasks, int &size);
 void Print(char **tasks, int size, int sel);
 char **RemoveTask(char **tasks, int &size, int sel);
 //--------------------------------------------------------------------
-void menu(char **tasks, int size)
+void menu(char **&tasks, int &size)
 {
 	int sel = 1, key = 0;
 
-	SetCursor(0, size - 1);
-	SetColor(menuColor);
-	cout << tasks[size - 1];
-	SetColor(defaultColor);
+	if (size == 1)
+	{
+		SetCursor(0, size - 1);
+		SetColor(menuColor);
+		cout << tasks[size - 1];
+		SetColor(defaultColor);
+	}
 
 	while (true)
 	{
@@ -104,6 +111,8 @@ char **AddTask(char **tasks, int &size)
 	delete[] tasks;
 	tasks = temp;
 	size++;
+
+
 	return tasks;
 }
 //--------------------------------------------------------------------
@@ -152,19 +161,40 @@ void Print(char **tasks, int size, int sel)
 	}
 }
 //--------------------------------------------------------------------
-void load(FILE *f, char * path, int &size)
+void load(FILE *f, char **&tasks, char * path, int &size)
 {
+	fread(&size, sizeof(size), 1, f);
+		char **temp = new char*[size];
 
+//	memcpy(temp, tasks, sizeof(tasks) * size);
 
+	for (size_t i = 0; i < size; i++)
+	{
+		temp[i] = tasks[i];
+	}
+
+	for (size_t i = 1; i < size; i++)
+	{
+		temp[i] = new char[length];
+
+		fread(temp[i], length, 1, f);
+	}
+
+	delete[] tasks;
+	tasks = temp;
 
 	fclose(f);
+	Print(tasks, size, 1);
 }
 //--------------------------------------------------------------------
 void save(FILE *f, char **tasks, char * path, int size)
 {
-	fread(&size, sizeof(size), 1, f);
-
-	fread(tasks, sizeof(tasks), 1, f);
+	f = fopen(path, "wb");
+	fwrite(&size, sizeof(size), 1, f);
+	for (size_t i = 1; i < size; i++)
+	{
+		fwrite(tasks[i], length, 1, f);
+	}
 
 	fclose(f);
 }
